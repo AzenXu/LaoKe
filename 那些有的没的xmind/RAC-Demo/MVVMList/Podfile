@@ -11,3 +11,8 @@ target 'MVVMList' do
   # Pods for MVVMList
 
 end
+
+target 'loginDemo' do
+    pod 'ReactiveCocoa', '~> 2.5'
+    pod 'Masonry'
+end
