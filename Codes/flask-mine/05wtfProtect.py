@@ -7,7 +7,7 @@
 
 from flask import Flask
 
-from flask_wtf import Form #导入Form基类
+from flask.ext.wtf import Form #导入Form基类
 from wtforms import StringField, SubmitField #导入字段
 from wtforms.validators import Required #导入验证方式
 
