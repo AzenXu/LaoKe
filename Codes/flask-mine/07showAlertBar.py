@@ -1,56 +1,46 @@
 # -*- coding:UTF-8 -*-
-# 这个文件用来演示使用wtf表单
-# 1. 配置密钥保证表单数据安全
-# 原理 - 设置一个密钥，用这个密钥生成加密令牌，用令牌验证请求数据的真伪
-# 2. 使用Form子类来实现Web表单
-# 配合template/index食用更加
+# 这个文件用来演示设置一个alertBar - flash()函数
+# 同时需要配合模板设置flash的渲染效果 - 通过get_flashed_messages()函数获取flash出来的内容
 
 from flask import Flask
+from flask import flash
 
+# 下面的import都是老代码，可以不管
+from flask import session
+from flask import redirect
+from flask import url_for
 from flask_wtf import Form #导入Form基类
 from wtforms import StringField, SubmitField #导入字段
 from wtforms.validators import Required #导入验证方式
-
-
-# 下面的import都是老代码，可以不管
 from flask import request
 from flask import make_response
-from flask import redirect
 from flask import abort
 from flask_script import Manager
 from flask import render_template
 from flask_bootstrap import Bootstrap
 #-------
 
-# 定义一个TextField
-# 有一个name的文本字段和一个submit的提交按钮
-# StringField -> 属性为type = 'text'的<input> validators -> 一个由验证函数组成的列表
-# SubmitField -> 属性为type = 'submit'的<input>
-# 所以这个类其实是一个UI组件对象？ - 不，这个类更像一个ViewModel，只是绑定已经默认做好了
 class NameForm(Form):
     name = StringField('What is your name?', validators=[Required()])
     submit = SubmitField('Submit')
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'security key' #用这个字典存key - SECRET_KEY配置通用密钥
+app.config['SECRET_KEY'] = 'security key'
 manager = Manager(app)
 bootstrap = Bootstrap(app)
 
 @app.route('/', methods = ['GET', 'POST'])
 def index():
-    # 实例化一个Form，传给模板，让它渲染 {{ wtf.quick_form(form) }}
-    # 这个思路蛮不错的...和iOS思路有区别. iOS的UI控件怎么展示，是控件自己决定的，这里
-    # 展示的样式是由渲染引擎决定的...所以NameForm其实是一个ViewModel
-    # 输入框里的内容改变后，会改变VM的属性值，所以通过属性值可以拿到输入的name
-    form = NameForm() # 如果是POST请求，这里会被自动赋值的吧...
-    name = None
-    # 提交表单后，如果数据通过验证，则函数返回True
-    # 会调用所有字段上附属的验证函数（如name的Required()）
+    form = NameForm()
     if form.validate_on_submit():
-        name = form.name.data
-        # 清空表单 - 这也是VM的特点，值变了view的值自动变
+        oldName = session.get('name')
+        if oldName is not None and oldName != form.name.data:
+            flash('change name ummhuuu') # 看样子这个flash也会把内容存起来，下次渲染的时候在模板中取出来...
+            # 并不是实时刷新view的样子呢
+        session['name'] = form.name.data
         form.name.data = ''
-    return render_template('index.html', form = form, name = name)
+        return redirect(url_for('index'))
+    return render_template('index-flash.html', form = form, name = session.get('name'))
 
 # ------------下面都是老代码，可以不看-----------
 
