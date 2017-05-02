@@ -7,7 +7,7 @@
 
 from flask import Flask
 
-from flask.ext.wtf import Form #导入Form基类
+from flask_wtf import Form #导入Form基类
 from wtforms import StringField, SubmitField #导入字段
 from wtforms.validators import Required #导入验证方式
 
@@ -26,6 +26,7 @@ from flask_bootstrap import Bootstrap
 # 有一个name的文本字段和一个submit的提交按钮
 # StringField -> 属性为type = 'text'的<input> validators -> 一个由验证函数组成的列表
 # SubmitField -> 属性为type = 'submit'的<input>
+# 所以这个类其实是一个UI组件对象？ - 不，这个类更像一个ViewModel，只是绑定已经默认做好了
 class NameForm(Form):
     name = StringField('What is your name?', validators=[Required()])
     submit = SubmitField('Submit')
@@ -33,13 +34,25 @@ class NameForm(Form):
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'security key' #用这个字典存key - SECRET_KEY配置通用密钥
 manager = Manager(app)
-
-# 之后，就可以在程序中使用一个包含Bootstrap文件的基模板，需要用到模板继承 - 使用示例见user.html
 bootstrap = Bootstrap(app)
 
-@app.route('/')
+@app.route('/', methods = ['GET', 'POST'])
 def index():
-    return render_template('index.html')
+    # 实例化一个Form，传给模板，让它渲染 {{ wtf.quick_form(form) }}
+    # 这个思路蛮不错的...和iOS思路有区别. iOS的UI控件怎么展示，是控件自己决定的，这里
+    # 展示的样式是由渲染引擎决定的...所以NameForm其实是一个ViewModel
+    # 输入框里的内容改变后，会改变VM的属性值，所以通过属性值可以拿到输入的name
+    form = NameForm() # 如果是POST请求，这里会被自动赋值的吧...
+    name = None
+    # 提交表单后，如果数据通过验证，则函数返回True
+    # 会调用name字段上附属的Required()验证函数
+    if form.validate_on_submit():
+        name = form.name.data
+        # 清空表单 - 这也是VM的特点，值变了view的值自动变
+        form.name.data = ''
+    return render_template('index.html', form = form, name = name)
+
+# ------------下面都是老代码，可以不看-----------
 
 @app.route('/user/<name>')
 def user(name):
@@ -53,8 +66,6 @@ def page_not_found(e):
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
-
-# ------------下面都是老代码，可以不看-----------
 
 @app.route('/request')    #把response拼成一个对象返回。注意需要导入make_response
 def errorShowRequest():
