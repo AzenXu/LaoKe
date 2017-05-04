@@ -1,16 +1,19 @@
 # -*- coding:UTF-8 -*-
-# 这个文件学学使用Flask-SQLAlchemy来处理数据库
-# 1. 指定使用的数据库类型 - 保存在SQLALCHEMY_DATABASE_URI键中
-# 2. SQLALCHEMY_COMMIT_ON_TEARDOWN设置为True，每次请求结束都会自动提交数据库中的变动
-# 3. 操纵数据库方面
-# 4. 优化操作，不用每次使用Python shell的时候，都需要from xxx import db    ---db.create_all()
+# 这个文件学学使用Flask-Mail提供电子邮件支持 - 特定事件发生的时候，给用户发邮件提醒用户
+# 库 - Python标准库中的smtplib包 - Flask-Mail包装了这个包
+# Flask-Mail连接到SMTP服务器，把邮件交给这个服务器发送
+# 不配置，会连接localhost上的port25，无需验证即可发邮件
 
 from flask import Flask
+from flask_mail import Mail
+from flask_mail import Message
+
+# 下面的import都是老代码，可以不管
+from flask_migrate import Migrate
+from flask_migrate import MigrateCommand
 from flask_sqlalchemy import SQLAlchemy
 import os
 from flask_script import Shell # 不用每次执行Python shell都import db
-
-# 下面的import都是老代码，可以不管
 from flask import flash
 from flask import session
 from flask import redirect
@@ -28,12 +31,35 @@ from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
 
+# 配置电子邮件信息
+
+app.config['FLASKY_MAIL_SUBJECT_PREFIX'] = '[Flasky]'
+app.config['FLASKY_MAIL_SENDER'] = 'Azen Admin <azen_me@163.com>'
+
+app.config['MAIL_SERVER'] = 'smtp.163.com'
+app.config['MAIL_PORT'] = 25
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('FLASK_MAIL_NAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('FLASK_MAIL_PASSWORD')
+
+# --- 邮件配置完毕 ---
+
+mail = Mail(app) # 可以使用Python Shell发送邮件了，还可以写到程序里，这里木有做。
+
 # 设置数据库基本参数
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True # 修改数据自动commit
 db = SQLAlchemy(app) # 这个东东就是数据库实例，通过操纵它操纵数据库
 # --- 设置结束 ---
+
+manager = Manager(app) # Flask-Script的manager
+bootstrap = Bootstrap(app)
+
+# 设置migrate数据库迁移
+migrate = Migrate(app, db)
+manager.add_command('db', MigrateCommand)
+# ---
 
 
 # 定义两个表 - 通过定义类的方式
@@ -56,8 +82,6 @@ class User(db.Model):
         return '<User %>' % self.username
 
 app.config['SECRET_KEY'] = 'security key'
-manager = Manager(app)
-bootstrap = Bootstrap(app)
 
 # 设置Python Shell的便捷用法 - 执行python shell的时候不用每次都import db
 def make_shell_context():

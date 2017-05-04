@@ -2,13 +2,10 @@
 # 这个文件学学使用Flask-SQLAlchemy来处理数据库
 # 1. 指定使用的数据库类型 - 保存在SQLALCHEMY_DATABASE_URI键中
 # 2. SQLALCHEMY_COMMIT_ON_TEARDOWN设置为True，每次请求结束都会自动提交数据库中的变动
-# 3. 操纵数据库方面
-# 4. 优化操作，不用每次使用Python shell的时候，都需要from xxx import db    ---db.create_all()
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
-from flask_script import Shell # 不用每次执行Python shell都import db
 
 # 下面的import都是老代码，可以不管
 from flask import flash
@@ -31,10 +28,9 @@ app = Flask(__name__)
 # 设置数据库基本参数
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
-app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True # 修改数据自动commit
+app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 db = SQLAlchemy(app) # 这个东东就是数据库实例，通过操纵它操纵数据库
 # --- 设置结束 ---
-
 
 # 定义两个表 - 通过定义类的方式
 class Role(db.Model):
@@ -59,13 +55,6 @@ app.config['SECRET_KEY'] = 'security key'
 manager = Manager(app)
 bootstrap = Bootstrap(app)
 
-# 设置Python Shell的便捷用法 - 执行python shell的时候不用每次都import db
-def make_shell_context():
-    return dict(app = app, db = db, User = User, Role = Role)
-manager.add_command("shell", Shell(make_context=make_shell_context))
-# 想尝试Python Shell的写法，参考P50，sqlOperactionExe.py文件
-# --- 设置结束 ---
-
 
 class NameForm(Form):
     name = StringField('What is your name?', validators=[Required()])
@@ -75,23 +64,13 @@ class NameForm(Form):
 def index():
     form = NameForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.name.data).first() # 捞
-
-        if user is None:
-            user = User(username = form.name.data)
-            db.session.add(user)
-            # db.session.commit() - 前面配置了app.config所以这里会自动commit
-            session['known'] = False
-            flash('first time here? welcome~~') # 捞不到创建
-        else:
-            session['known'] = True
-
+        oldName = session.get('name')
+        if oldName is not None and oldName != form.name.data:
+            flash('change name ummhuuu')
         session['name'] = form.name.data
         form.name.data = ''
         return redirect(url_for('index'))
-    return render_template('index-sqltest.html',
-                           form = form, name = session.get('name'),
-                           known = session.get('known', False))
+    return render_template('index-flash.html', form = form, name = session.get('name'))
 
 # ------------下面都是老代码，可以不看-----------
 

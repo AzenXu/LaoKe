@@ -1,16 +1,17 @@
 # -*- coding:UTF-8 -*-
-# 这个文件学学使用Flask-SQLAlchemy来处理数据库
-# 1. 指定使用的数据库类型 - 保存在SQLALCHEMY_DATABASE_URI键中
-# 2. SQLALCHEMY_COMMIT_ON_TEARDOWN设置为True，每次请求结束都会自动提交数据库中的变动
-# 3. 操纵数据库方面
-# 4. 优化操作，不用每次使用Python shell的时候，都需要from xxx import db    ---db.create_all()
+# 这个文件学学使用Flask-Migrate实现数据库迁移
+# 1. 之前字段更新之后，需要删除旧表，创建新表，这样会丢失数据
+# 2. 更好的办法是使用数据库迁移框架，类似源码版本管理工具，数据库迁移工具也能跟踪数据库模型变化，然后增量的把变化应用到数据库中
+# 3. 迁移框架 -> Alembic， Flask包好的Flask-Migrate，可以直接使用Flask-Script完成
 
 from flask import Flask
+from flask_migrate import Migrate # 引入Migrate以做数据库迁移
+from flask_migrate import MigrateCommand # 可附加到Flask_Script的manager对象上
+
+# 下面的import都是老代码，可以不管
 from flask_sqlalchemy import SQLAlchemy
 import os
 from flask_script import Shell # 不用每次执行Python shell都import db
-
-# 下面的import都是老代码，可以不管
 from flask import flash
 from flask import session
 from flask import redirect
@@ -35,6 +36,14 @@ app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True # 修改数据自动commit
 db = SQLAlchemy(app) # 这个东东就是数据库实例，通过操纵它操纵数据库
 # --- 设置结束 ---
 
+manager = Manager(app) # Flask-Script的manager
+bootstrap = Bootstrap(app)
+
+# 设置migrate数据库迁移
+migrate = Migrate(app, db)
+manager.add_command('db', MigrateCommand)
+# ---
+
 
 # 定义两个表 - 通过定义类的方式
 class Role(db.Model):
@@ -56,8 +65,6 @@ class User(db.Model):
         return '<User %>' % self.username
 
 app.config['SECRET_KEY'] = 'security key'
-manager = Manager(app)
-bootstrap = Bootstrap(app)
 
 # 设置Python Shell的便捷用法 - 执行python shell的时候不用每次都import db
 def make_shell_context():
