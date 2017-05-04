@@ -1,8 +1,5 @@
 # -*- coding:UTF-8 -*-
-# 这个文件学学使用Flask-Mail提供电子邮件支持 - 特定事件发生的时候，给用户发邮件提醒用户
-# 库 - Python标准库中的smtplib包 - Flask-Mail包装了这个包
-# Flask-Mail连接到SMTP服务器，把邮件交给这个服务器发送
-# 不配置，会连接localhost上的port25，无需验证即可发邮件
+# 1. 使用config.py文件代替简单的config['key']字典
 
 from flask import Flask
 from flask_mail import Mail
