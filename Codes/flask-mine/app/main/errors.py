@@ -1,5 +1,6 @@
 from flask import render_template
-from . import main # 这是啥意思...
+from . import main # 这是啥意思... 从__init__里面引入了main对象
+                   # main是蓝本对象
 
 # 区别于在hello_orignal.py中写的errorhandler方法，这里用app_errorhandler
 # 区别：errorhandler用于截获本文件中的错误
