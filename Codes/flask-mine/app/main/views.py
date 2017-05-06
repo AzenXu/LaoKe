@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 from flask import render_template, session, redirect, url_for
 
 from . import main
@@ -22,7 +24,7 @@ def index():
 
         session['name'] = form.name.data
         form.name.data = ''
-        return redirect(url_for('.index')) # 蓝本里使用url_for函数，要通过蓝本名.index()视图函数的URL使用url函数
+        return redirect(url_for('main.index')) # 蓝本里使用url_for函数，要通过蓝本名.index()视图函数的URL使用url函数
         # .index是main.index的简写形式 -> 省略蓝本名
     return render_template('index-sqltest.html',
                            form = form, name = session.get('name'),

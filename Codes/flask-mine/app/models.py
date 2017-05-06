@@ -1,3 +1,5 @@
+# -*- coding:UTF-8 -*-
+
 from . import db
 
 # 定义两个表 - 通过定义类的方式

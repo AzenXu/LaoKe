@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding:UTF-8 -*-
+
 # 上面一行的作用 - 直接使用./manager.py执行脚本，而不需要使用python manager.py - shebang声明
 
 import os
@@ -16,7 +18,7 @@ migrate = Migrate(app, db)
 # 为Shell配置数据库，和数据库数据库迁移 - 可以直接通过Shell便捷的操纵数据库
 def make_shell_context():
     return dict(app=app, db=db, User=User, Role=Role)
-manager.add_command("shell", Shell(make_context=make_context=make_shell_context))
+manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
 # 这里的配置是为了单元测试可以跑起来
