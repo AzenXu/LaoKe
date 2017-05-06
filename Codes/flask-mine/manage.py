@@ -19,5 +19,13 @@ def make_shell_context():
 manager.add_command("shell", Shell(make_context=make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
+# 这里的配置是为了单元测试可以跑起来
+@manager.command
+def test():
+    """Run the unit tests."""
+    import unittest
+    tests = unittest.TestLoader().discover('test')
+    unittest.TextTestRunner(verbosity=2).run(tests)
+
 if __name__ == '__main__':
     manager.run()
