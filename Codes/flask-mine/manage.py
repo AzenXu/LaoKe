@@ -2,6 +2,8 @@
 # -*- coding:UTF-8 -*-
 
 # 上面一行的作用 - 直接使用./manager.py执行脚本，而不需要使用python manager.py - shebang声明
+# 注意：在跑程序之前，一定要保证数据库已经创建好了...
+# 创建数据库的命令：python manage.py db upgrade
 
 import os
 from app import create_app, db # 从app这个文件夹下，找到creat_app和db包含进来
