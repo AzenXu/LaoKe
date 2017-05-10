@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-from flask import render_template, session, redirect, url_for
+from flask import render_template, session, redirect, url_for, flash
 
 from . import main
 from .forms import NameForm # 从当前目录forms这个文件夹里，引入NameForm这个类
