@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # 这里引入了记录用户登录状态的库
 from flask_login import UserMixin
 
-# 加载用户的回调函数 - login_manager需要实现的方法
+# 8.4 描述如何捞到指定用户的回调函数 - login_manager需要实现的方法
 from . import login_manager
 @login_manager.user_loader
 def load_user(user_id):
@@ -24,7 +24,7 @@ class Role(db.Model):
     def __repr__(self): # 可选方法，同iOS类的description方法
         return '<Role %r>' % self.name
 
-class User(UserMixin, db.Model): # 传说中的多继承？
+class User(UserMixin, db.Model): # 8.4注释：传说中的多继承？
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(64), unique = True, index = True)

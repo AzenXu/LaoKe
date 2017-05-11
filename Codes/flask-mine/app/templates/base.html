@@ -20,6 +20,16 @@
         <span class="icon-bar"></span>
       </button>
       <a class="navbar-brand" href={{ url_for('main.index') }}>Flasky</a>
+      <!-- 这里添加8.4用户登录相关逻辑 -->
+      <ul class="nav navbar-nav navbar-right">
+        <!-- current_user由flask_login这个库定义好了，直接调就好 -->
+        {% if current_user.is_authenticated() %}
+        <li><a href="{{ url_for('auth.logout') }}">Sign Out</a></li>
+        {% else %}
+        <li><a href="{{ url_for('auth.login') }}">Sign In</a></li>
+        {% endif %}
+
+      </ul>
     </div>
   </div>
 </div>

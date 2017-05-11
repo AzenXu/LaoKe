@@ -7,6 +7,14 @@ from .forms import NameForm # 从当前目录forms这个文件夹里，引入Nam
 from .. import db # 从上一级目录下引入db这个对象
 from ..models import User # 从上一级models这个文件夹里，引入User这个类
 
+from flask_login import login_required  # 这里演示8.4保护路由 - 只能登录用户访问
+
+# 演示注册一个受保护的路由
+@main.route('/secret')
+@login_required
+def secret():
+    return 'Only authenticated users are allowed'
+
 @main.route('/', methods=['GET', 'POST'])
 def index():
     form = NameForm()
