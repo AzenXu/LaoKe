@@ -23,7 +23,8 @@
       <!-- 这里添加8.4用户登录相关逻辑 -->
       <ul class="nav navbar-nav navbar-right">
         <!-- current_user由flask_login这个库定义好了，直接调就好 -->
-        {% if current_user.is_authenticated() %}
+        <!-- 可以获取一个当前登录的用户，如果用户未登录，则是一个匿名用户代理对象，is_authenticated方法返回False -->
+        {% if current_user.is_authenticated %}
         <li><a href="{{ url_for('auth.logout') }}">Sign Out</a></li>
         {% else %}
         <li><a href="{{ url_for('auth.login') }}">Sign In</a></li>
@@ -37,6 +38,12 @@
 
 {% block content %}
 <div class="container">
+  {% for message in get_flashed_messages() %}
+    <div class="alert alert-warning">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      {{ message }}
+    </div>
+  {% endfor %}
   {% block page_content %}{% endblock %}
 </div>
 {% endblock %}

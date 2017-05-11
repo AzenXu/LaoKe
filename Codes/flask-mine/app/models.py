@@ -42,6 +42,7 @@ class User(UserMixin, db.Model): # 8.4注释：传说中的多继承？
 
     # 这里定义一个成员方法
     def verify_password(self, password):
+        print('---', self.password_hash, '----', generate_password_hash(password),'----')
         return check_password_hash(self.password_hash, password)
 
     def __repr__(self):
