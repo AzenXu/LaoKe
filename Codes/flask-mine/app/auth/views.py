@@ -5,7 +5,8 @@ from flask_login import login_user
 from flask_login import logout_user, login_required
 from . import auth
 from ..models import User
-from .forms import LoginForm
+from .forms import LoginForm, RegistrationForm
+from .. import db
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
@@ -27,3 +28,17 @@ def logout():
     logout_user()
     flash('You have been logged out.')
     return redirect(url_for('main.index'))
+
+@auth.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(
+            email=form.email.data,
+            username=form.username.data,
+            password=form.password.data
+        )
+        db.session.add(user)
+        flash('You can now login.')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/register.html', form=form)
