@@ -10,6 +10,11 @@ from flask_login import UserMixin
 
 # 8.4 描述如何捞到指定用户的回调函数 - login_manager需要实现的方法
 from . import login_manager
+
+#8.6 确认用户账户
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from flask import current_app
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id)) # 返回用户对象，没有返回None
@@ -44,6 +49,26 @@ class User(UserMixin, db.Model): # 8.4注释：传说中的多继承？
     def verify_password(self, password):
         print('---', self.password_hash, '----', generate_password_hash(password),'----')
         return check_password_hash(self.password_hash, password)
+
+    # 学习确认用户账户的同学请看这里
+    confirmed = db.Column(db.Boolean, default=False) # 定义了一个状态 - 是否确认
+    # 定义方法 - 生成确认令牌，有效期一小时
+    def generate_confirmation_token(self, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps({'confirm':self.id})
+
+    # 验证令牌 - 验证通过把新添加的confirm属性设为true
+    def confirm(self, token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except
+            return False
+        if data.get('confirm') != self.id:
+            return False
+        self.confirmed = True
+        db.session.add(self)
+        return True
 
     def __repr__(self):
         return '<User %>' % self.username
