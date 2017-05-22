@@ -62,9 +62,9 @@ class User(UserMixin, db.Model): # 8.4注释：传说中的多继承？
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
-        except
+        except:
             return False
-        if data.get('confirm') != self.id:
+        if data.get('confirm') != self.id: # 当前登录的用户不是待验证的用户
             return False
         self.confirmed = True
         db.session.add(self)
