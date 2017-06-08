@@ -27,6 +27,7 @@ class DevelopmentConfig(Config):
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('FLASK_MAIL_NAME')
     MAIL_PASSWORD = os.environ.get('FLASK_MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = 'azen_me@163.com'
 
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URI') or \
         'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
