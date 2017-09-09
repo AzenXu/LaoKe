@@ -6,10 +6,10 @@
 # 创建数据库的命令：python manage.py db upgrade
 
 import os
-from app import create_app, db # 从app这个文件夹下，找到creat_app和db包含进来
-from app.models import User, Role # 从app下的models模块 - 文件， 找到User和Role引进来
-from flask_script import Manager, Shell # 引进来命令行管家
-from flask_migrate import Migrate, MigrateCommand # 数据库迁移
+from app import create_app, db  # 从app这个文件夹下，找到creat_app和db包含进来
+from app.models import User, Role  # 从app下的models模块 - 文件， 找到User和Role引进来
+from flask_script import Manager, Shell  # 引进来命令行管家
+from flask_migrate import Migrate, MigrateCommand  # 数据库迁移
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default') # 从环境变量里读取配置名或使用default
 
