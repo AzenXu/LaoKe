@@ -10,7 +10,7 @@ class LoginForm(FlaskForm):
     email = StringField('Email', validators=[Required(), length(1, 64), Email()])
     password = PasswordField('Password', validators=[Required()])
     remember_me = BooleanField('Keep me logged in') # 复选框
-    submit = SubmitField('Log In')
+    submit = SubmitField('Log In')  # 封装好了点击之后的逻辑 - 发Post请求到当前页面
 
 class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[Required(), length(1, 64), Email()])

@@ -4,6 +4,7 @@
 # 在这里导入需要用到的库，但是不初始化（仅实例化），因为app还没生成
 
 # 这里引入记录登录状态的库 - 书8.4节
+# 专门用来管理用户认证系统中的认证状态的，不依赖特定认证机制
 from flask_login import LoginManager
 
 # --- 下面是旧的 ---
@@ -11,18 +12,19 @@ from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
-from config import config # 导入自定义的config字典
+from config import config  # 导入自定义的config字典
 
 bootstrap = Bootstrap()
 mail = Mail()
 db = SQLAlchemy()
 
-#登录状态记录
+# 登录状态记录
 login_manager = LoginManager()
 # 设为strong会记录客户端IP和浏览器的用户代理信息，发现异常就登出
 login_manager.session_protection = 'strong'
 # 设置登录页面的端点 - auth.这个是定义了路由的蓝本的名字
 login_manager.login_view = 'auth.login'
+
 
 # 实现工厂函数，创建app实例
 def create_app(config_name):

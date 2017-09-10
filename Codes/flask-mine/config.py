@@ -1,7 +1,9 @@
 # -*- coding:UTF-8 -*-
 
 import os
+
 basedir = os.path.abspath(os.path.dirname(__file__))
+
 
 # Config基类 - 包含通用配置
 # 子类分别定义专用的配置
@@ -10,15 +12,17 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'security key'
-    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
+    SQLALCHEMY_COMMIT_ON_TEARDOWN = True  # 每次请求结束后都会自动提交数据库中的变动
+    #  邮件相关
     FLASKY_MAIL_SUBJECT_PREFIX = '[Flasky]'
     FLASKY_MAIL_SENDER = 'Azen Admin <azen_me@163.com>'
     FLASKY_ADMIN = os.environ.get('FLASKY_ADMIN')
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
-    @staticmethod
+    @staticmethod  # 常量方法，不同实例化这个类就能调用的方法
     def init_app(app):
         pass
+
 
 class DevelopmentConfig(Config):
     DEBUG = True
@@ -30,18 +34,19 @@ class DevelopmentConfig(Config):
     MAIL_DEFAULT_SENDER = 'azen_me@163.com'
 
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URI') or \
-        'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
-
+                              'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
 
 
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URI') or \
-        'sqlite:///' + os.path.join(basedir, 'data-test.sqlite')
+                              'sqlite:///' + os.path.join(basedir, 'data-test.sqlite')
+
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI') or \
-        'sqlite:///' + os.path.join(basedir, 'data.sqlite')
+                              'sqlite:///' + os.path.join(basedir, 'data.sqlite')
+
 
 config = {
     'development': DevelopmentConfig,
