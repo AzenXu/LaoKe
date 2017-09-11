@@ -1,13 +1,23 @@
 # -*- coding: UTF-8 -*-
 
 from flask import render_template, redirect, request, url_for, flash, session
-from flask_login import login_user
+from flask_login import login_user, current_user
 from flask_login import logout_user, login_required
 from . import auth
 from ..models import User
 from .forms import LoginForm, RegistrationForm
 from .. import db
 # from ..email import send_email
+
+
+@auth.before_app_request  #  每次请求用户相关，更新用户的last_seen值
+def before_request():
+    if current_user.is_authenticated:
+        current_user.ping()
+        # 下面两行关于邮件确认的先不搞
+        # if not current_user.confirmed and request.endpoint[:5] != 'auth.':
+        #     return redirect(url_for('auth.unconfirmed'))
+
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():

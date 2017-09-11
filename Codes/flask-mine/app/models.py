@@ -1,6 +1,8 @@
 # -*- coding:UTF-8 -*-
 
 import os
+from datetime import datetime
+
 from . import db
 
 # 这里引入加密库
@@ -74,6 +76,17 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
     # 学习用户认证的童鞋看这里
     password_hash = db.Column(db.String(128))
 
+    # 第10章 - 用户资料页
+    name = db.Column(db.String(64))
+    location = db.Column(db.String(64))
+    about_me = db.Column(db.Text())  # A variably sized string type. 可变长度字符串
+    member_since = db.Column(db.DateTime(), default=datetime.utcnow)  # 默认值为当前时间 - default接收的参数为一个函数 - 这个字段只需要默认值...
+    last_seen = db.Column(db.DateTime(), default=datetime.utcnow)  # 这个字段每次登录之后都需要更新
+
+    def ping(self):  # 更新last_seen，每次收到用户请求的时候都需要调用ping方法，通过钩子实现这个需求 - before_app_request
+        self.last_seen = datetime.utcnow()
+        db.session.add(self)
+
     @property  # - 这里学习get、set方法的定义
     def password(self, password):
         raise AttributeError('password is not a readable attribute')
@@ -118,6 +131,8 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
         super(User, self).__init__(**kwargs)
         # 给用户赋值
         if self.role is None:
+            if len(Role.query.all()) is 0:
+                Role.insert_roles()  # 用户角色表初始化...
             print('---xxx---', os.getenv('FLASK_CONFIG'), '---xxx---')  # 这里取不到东西...为啥？明明配了啊
             admin_mail = 'admin@admin.com'  # 临时写在这里
             if self.email == admin_mail:
