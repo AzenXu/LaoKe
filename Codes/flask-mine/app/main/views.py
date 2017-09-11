@@ -5,9 +5,11 @@ from flask import render_template, session, redirect, url_for, flash
 from . import main
 from .forms import NameForm # 从当前目录forms这个文件夹里，引入NameForm这个类
 from .. import db # 从上一级目录下引入db这个对象
-from ..models import User # 从上一级models这个文件夹里，引入User这个类
+from ..models import User, Permission  # 从上一级models这个文件夹里，引入User这个类
 
 from flask_login import login_required  # 这里演示8.4保护路由 - 只能登录用户访问
+
+from ..decorators import permission_required, admin_required  # 这里测试权限装饰器
 
 # 演示注册一个受保护的路由
 @main.route('/secret')
@@ -37,3 +39,16 @@ def index():
     return render_template('index-sqltest.html',
                            form = form, name = session.get('name'),
                            known = session.get('known', False))
+
+# 下面两个路由测试装饰器
+@main.route('/admin')
+@login_required
+@admin_required
+def for_admins_only():
+    return 'For adminstrators!'
+
+@main.route('/moderator')
+@login_required
+@permission_required(Permission.MODERATE_COMMENTS)
+def for_moderators_only():
+    return 'For comment moderators!'

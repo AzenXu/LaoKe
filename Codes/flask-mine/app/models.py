@@ -1,12 +1,13 @@
 # -*- coding:UTF-8 -*-
 
+import os
 from . import db
 
 # 这里引入加密库
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # 这里引入了记录用户登录状态的库
-from flask_login import UserMixin
+from flask_login import UserMixin, AnonymousUserMixin
 
 # 8.4 描述如何捞到指定用户的回调函数 - login_manager需要实现的方法
 from . import login_manager
@@ -46,7 +47,8 @@ class Role(db.Model):
     def insert_roles():
         roles = {
             'User': (Permission.FOLLOW | Permission.COMMENT | Permission.WRITE_ARITICLES, True),
-            'Moderator': (Permission.FOLLOW | Permission.COMMENT | Permission.WRITE_ARITICLES | Permission.MODERATE_COMMENTS, False),
+            'Moderator': (
+            Permission.FOLLOW | Permission.COMMENT | Permission.WRITE_ARITICLES | Permission.MODERATE_COMMENTS, False),
             'Administrator': (0xff, False)
         }
         for r in roles:
@@ -106,5 +108,34 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
         db.session.add(self)
         return True
 
+    def can(self, permissions):
+        return self.role is not None and (self.role.permissions & permissions) == permissions
+
+    def is_administrator(self):
+        return self.can(Permission.ADMINISTER)
+
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+        # 给用户赋值
+        if self.role is None:
+            print('---xxx---', os.getenv('FLASK_CONFIG'), '---xxx---')  # 这里取不到东西...为啥？明明配了啊
+            admin_mail = 'admin@admin.com'  # 临时写在这里
+            if self.email == admin_mail:
+                self.role = Role.query.filter_by(permissions=0xff).first()
+            if self.role is None:
+                self.role = Role.query.filter_by(default=True).first()
+
     def __repr__(self):
         return '<User %>' % self.username
+
+
+#  这个类的设计目的是为了不管用户是否登录，都能调用current_user.can方法和is_administrator方法 - 通用性设计
+class AnonymousUser(AnonymousUserMixin):
+    def can(self, permissions):
+        return False
+
+    def is_administrator(self):
+        return False
+
+#  配置默认用户所属的类
+login_manager.anonymous_user = AnonymousUser
