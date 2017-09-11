@@ -16,7 +16,10 @@ from . import login_manager
 
 # 8.6 确认用户账户
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from flask import current_app
+from flask import current_app, request
+
+# 10.3获取头像
+import hashlib
 
 
 # 9.1 用户权限
@@ -82,10 +85,21 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
     about_me = db.Column(db.Text())  # A variably sized string type. 可变长度字符串
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)  # 默认值为当前时间 - default接收的参数为一个函数 - 这个字段只需要默认值...
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)  # 这个字段每次登录之后都需要更新
+    avatar_hash = db.Column(db.String(32))
 
     def ping(self):  # 更新last_seen，每次收到用户请求的时候都需要调用ping方法，通过钩子实现这个需求 - before_app_request
         self.last_seen = datetime.utcnow()
         db.session.add(self)
+
+    # 为用户生成头像 - 使用gravatar的API
+    def gravatar(self, size=100, default='identicon', rating='g'):
+        if request.is_secure:
+            url = 'https://secure.gravatar.com/avatar'
+        else:
+            url = 'http://www.gravatar.com/avatar'
+        hash = self.avatar_hash or hashlib.md5(self.email.encode('utf-8')).hexdigest()
+        return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
+                 url=url, hash=hash, size=size, default=default, rating=rating)
 
     @property  # - 这里学习get、set方法的定义
     def password(self, password):
@@ -139,6 +153,8 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
                 self.role = Role.query.filter_by(permissions=0xff).first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
+        if self.email is not None and self.avatar_hash is None:
+            self.avatar_hash = hashlib.md5(self.email.encode('utf-8')).hexdigest()
 
     def __repr__(self):
         return '<User %>' % self.username
