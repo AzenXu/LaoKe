@@ -3,11 +3,11 @@
 from flask import render_template, session, redirect, url_for, flash, abort
 
 from . import main
-from .forms import NameForm # 从当前目录forms这个文件夹里，引入NameForm这个类
+from .forms import NameForm, EditProfileForm, EditProfileAdminForm # 从当前目录forms这个文件夹里，引入NameForm这个类
 from .. import db # 从上一级目录下引入db这个对象
-from ..models import User, Permission  # 从上一级models这个文件夹里，引入User这个类
+from ..models import User, Permission, Role  # 从上一级models这个文件夹里，引入User这个类
 
-from flask_login import login_required  # 这里演示8.4保护路由 - 只能登录用户访问
+from flask_login import login_required, current_user  # 这里演示8.4保护路由 - 只能登录用户访问
 
 from ..decorators import permission_required, admin_required  # 这里测试权限装饰器
 
@@ -46,6 +46,47 @@ def user(username):
     if user is None:
         abort(404)
     return render_template('user.html', user=user)
+
+@main.route('/edit-profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = EditProfileForm()
+    if form.validate_on_submit():
+        current_user.name = form.name.data
+        current_user.location = form.location.data
+        current_user.about_me = form.about_me.data
+        db.session.add(current_user)
+        flash('done')
+        return redirect(url_for('.user', username=current_user.username))
+    form.name.data = current_user.name
+    form.location.data = current_user.location
+    form.about_me.data = current_user.about_me
+    return render_template('edit_profile.html', form=form)
+
+@main.route('/edit-profile/<int:id>', methods=['GET','POST'])
+@login_required
+@admin_required
+def edit_profile_admin(id):
+    user = User.query.get_or_404(id)
+    form = EditProfileAdminForm(user=user)
+    if form.validate_on_submit():
+        user.email = form.email.data
+        user.username = form.username.data
+        user.confirmed = form.confirmed.data
+        user.role = Role.query.get(form.role.data)
+        user.name = form.name.data
+        user.location = form.location.data
+        user.about_me = form.about_me.data
+        db.session.add(user)
+        flash('The profile has been updated.')
+    form.email.data = user.email
+    form.username.data = user.username
+    form.confirmed.data = user.confirmed
+    form.role.data = user.role_id
+    form.name.data = user.name
+    form.location.data = user.location
+    form.about_me.data = user.about_me
+    return render_template('edit_profile.html', form=form, user=user)
 
 # 下面两个路由测试装饰器
 @main.route('/admin')
