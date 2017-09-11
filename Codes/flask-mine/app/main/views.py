@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-from flask import render_template, session, redirect, url_for, flash
+from flask import render_template, session, redirect, url_for, flash, abort
 
 from . import main
 from .forms import NameForm # 从当前目录forms这个文件夹里，引入NameForm这个类
@@ -40,6 +40,13 @@ def index():
                            form = form, name = session.get('name'),
                            known = session.get('known', False))
 
+@main.route('/user/<username>')
+def user(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        abort(404)
+    return render_template('user.html', user=user)
+
 # 下面两个路由测试装饰器
 @main.route('/admin')
 @login_required
@@ -52,3 +59,4 @@ def for_admins_only():
 @permission_required(Permission.MODERATE_COMMENTS)
 def for_moderators_only():
     return 'For comment moderators!'
+

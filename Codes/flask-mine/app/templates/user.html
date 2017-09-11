@@ -3,7 +3,27 @@
 {% block title %} 这是标题 {% endblock %}
 
 {% block page_content %}
-<div class="page-header">
-  <h1>Hello, {{name}}!</h1>
-</div>
+    <h1>{{ user.username }}</h1>
+    {% if user.name or user.location %}
+        <p>
+            {% if user.name %}
+                {{ user.name }}
+            {% endif %}
+            {% if user.location %}
+                From <a href="http://maps.google.com/?q={{ user.location }}">
+                    {{ user.location }}
+            </a>
+            {% endif %}
+        </p>
+    {% endif %}
+    {% if current_user.is_administrator() %}
+        <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
+    {% endif %}
+    {% if user.about_me %}
+        <p>{{ user.about_me }}</p>
+    {% endif %}
+    <p>
+        老铁加入时间：{{ user.member_since }}
+        老铁最近活动时间：{{ user.last_seen }}.
+    </p>
 {% endblock %}
