@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-from flask import render_template, session, redirect, url_for, flash, abort
+from flask import render_template, session, redirect, url_for, flash, abort, request, current_app
 
 from . import main
 from .forms import NameForm, EditProfileForm, EditProfileAdminForm, PostForm  # 从当前目录forms这个文件夹里，引入NameForm这个类
@@ -24,8 +24,12 @@ def index():
         post = Post(body=form.body.data, author=current_user._get_current_object()) # Post需要的是真正的user对象，current_user是对user的轻度包装，所以需要通过_get_current_object获取真正的对象
         db.session.add(post)
         return redirect(url_for('.index'))
-    posts = Post.query.order_by(Post.timestmp.desc()).all()
-    return render_template('index_with_posts.html', form=form, posts=posts)
+    # posts = Post.query.order_by(Post.timestmp.desc()).all()
+    page = request.args.get('page',1,type=int)  #  从请求的查询字符串中获取渲染的页数，没有指定则显示第1页，type=int保证参数无法转换成整数时，返回默认值
+    #  paginate: SQLAlchemy的分页控件,返回值是一个Pagination类对象，用于在模板中生成分页链接
+    pagination = Post.query.order_by(Post.timestmp.desc()).paginate(page, per_page=current_app.config['FLASKY_POSTS_PER_PAGE'])
+    posts = pagination.items
+    return render_template('index_with_posts.html', form=form, posts=posts, pagination=pagination)
 
 @main.route('/user/<username>')
 def user(username):

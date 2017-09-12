@@ -1,0 +1,39 @@
+{#这个分页控件需要好好分析分析#}
+
+{% macro pagination_widget(pagination, endpoint) %}
+    <ul class="pagination">
+        {#下面的这个li控制「上一页」，如果没有上一页，需要加上disable#}
+        <li{% if not pagination.has_prev %} class="disabled"{% endif %}> {# 感觉{% %}这个东东像一个宏... #}
+            {# url_for(endpoint, page = pagination.page - 1, **kwargs)
+                    这一句解析： **kwargs可接收关键字参数
+                    url_for：用于生成分页链接
+                #}
+            <a href="{% if pagination.has_prev %}{{ url_for(endpoint, page = pagination.page - 1, **kwargs) }}{% else %}#{% endif %}">
+                &laquo
+            </a>
+        </li>
+    {# 遍历展示所有页号 #}
+    {% for p in pagination.iter_pages() %} {# iter_pages是一个迭代器，返回一个在分页导航中显示的页数列表。这个列表的最左边显示 left_ #}
+        {% if p %}
+            {# 如果是当前页号，设置样式为active #}
+            {% if p == pagination.page %}
+                <li class="active">
+                    <a href="{{ url_for(endpoint, page = p, **kwargs) }}">{{ p }}</a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="{{ url_for(endpoint, page = p, **kwargs) }}">{{ p }}</a>
+                </li>
+            {% endif %}
+        {% else %}
+            <li class="disabled"><a href="#">&hellip;</a></li>
+        {% endif %}
+    {% endfor %}
+        {# 下一页 - 没下一页就用disable #}
+        <li{% if not pagination.has_next %} class="disabled"{% endif %}>
+            <a href="{% if pagination.has_next %}{{ url_for(endpoint, page = pagination.page + 1, **kwargs) }}{% else %}#{% endif %}">
+                &raquo;
+            </a>
+        </li>
+    </ul>
+{% endmacro %}

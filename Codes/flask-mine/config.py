@@ -18,6 +18,8 @@ class Config:
     FLASKY_MAIL_SENDER = 'Azen Admin <azen_me@163.com>'
     FLASKY_ADMIN = os.environ.get('FLASKY_ADMIN')
     SQLALCHEMY_TRACK_MODIFICATIONS = True
+    #  文章分页相关
+    FLASKY_POSTS_PER_PAGE = 10
 
     @staticmethod  # 常量方法，不同实例化这个类就能调用的方法
     def init_app(app):

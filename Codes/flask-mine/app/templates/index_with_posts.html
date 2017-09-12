@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
 
 {% block title %}Home{% endblock %}
 
@@ -42,4 +43,9 @@
             </li>
         {% endfor %}
     </div>
+
+    <div class="pagination">
+        {{ macros.pagination_widget(pagination, '.index') }} {# 用宏函数的方法插入定义的块，pagination是从路由的地方传进来的 #}
+    </div>
+
 {% endblock %}
