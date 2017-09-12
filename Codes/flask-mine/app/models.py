@@ -21,6 +21,10 @@ from flask import current_app, request
 # 10.3获取头像
 import hashlib
 
+# 11.4.2 - html标签清洗
+import bleach
+from markdown import markdown
+
 
 # 9.1 用户权限
 class Permission:
@@ -197,6 +201,7 @@ class Post(db.Model):
     body = db.Column(db.Text)
     timestmp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    body_html = db.Column(db.Text)  # markdown渲染成的HTML
 
     # 生成测试数据的方法11.3.1节
     @staticmethod
@@ -211,3 +216,15 @@ class Post(db.Model):
             p = Post(body=forgery_py.lorem_ipsum.sentence(),timestmp=forgery_py.date.date(True),author=u)
             db.session.add(p)
             db.session.commit()
+
+    @staticmethod
+    def on_changed_body(target, value, oldvalue, initiator):
+        print('我进来了！~~~！！！~~~')
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
+                        'h1', 'h2', 'h3', 'p']
+        target.body_html = bleach.linkify(bleach.clean(     # 第二步：clean函数清洗  # 第三步：linkify - 把纯文本中的url转为a标签
+            markdown(value, output_format='html'),  # 第一步：把value转变为html
+            tags=allowed_tags,
+            strip=True
+        ))
+db.event.listen(Post.body, 'set', Post.on_changed_body)  #  监听body的set方法，设置给body_html
