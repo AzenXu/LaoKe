@@ -29,30 +29,7 @@
       </h1>
     </div>
 
-    <div class="posts">
-        {% for post in posts %}
-            <li class="post">
-                <div class="'profile-thumbnail">
-                    <a href="{{ url_for('.user', username=post.author.username) }}">
-                        <img class="'img-rounded profile-thumbnail" src="{{ post.author.gravatar(size=40) }}">
-                    </a>
-                </div>
-                <div class="post-date">{{ post.timestamp }}</div>
-                <div class="post-author">
-                    <a href="{{ url_for('.user', username=post.author.username) }}">
-                        {{ post.author.username }}
-                    </a>
-                </div>
-                <div class="post-body">
-                    {% if post.body_html %}
-                        {{ post.body_html | safe }}
-                    {% else %}
-                        {{ post.body }}
-                    {% endif %}
-                </div>
-            </li>
-        {% endfor %}
-    </div>
+    {% include '_posts.html' %}
 
     <div class="pagination">
         {{ macros.pagination_widget(pagination, '.index') }} {# 用宏函数的方法插入定义的块，pagination是从路由的地方传进来的 #}
