@@ -34,4 +34,7 @@
         老铁加入时间：{{ user.member_since }}
         老铁最近活动时间：{{ user.last_seen }}.
     </p>
+
+    {#  _是习惯用法，用来区分独立模板和局部模板  #}
+    {% include '_posts.html' %}
 {% endblock %}
