@@ -87,6 +87,9 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)  # 这个字段每次登录之后都需要更新
     avatar_hash = db.Column(db.String(32))
 
+    # 第11章 - 博客
+    posts = db.relationship('Post', backref='author', lazy='dynamic')
+
     def ping(self):  # 更新last_seen，每次收到用户请求的时候都需要调用ping方法，通过钩子实现这个需求 - before_app_request
         self.last_seen = datetime.utcnow()
         db.session.add(self)
@@ -170,3 +173,10 @@ class AnonymousUser(AnonymousUserMixin):
 
 #  配置默认用户所属的类
 login_manager.anonymous_user = AnonymousUser
+
+class Post(db.Model):
+    __tablename__ = 'posts'
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text)
+    timestmp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
