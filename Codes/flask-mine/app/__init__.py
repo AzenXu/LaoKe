@@ -7,6 +7,9 @@
 # 专门用来管理用户认证系统中的认证状态的，不依赖特定认证机制
 from flask_login import LoginManager
 
+# 这里开始MarkDown
+from flask_pagedown import PageDown
+
 # --- 下面是旧的 ---
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
@@ -17,6 +20,7 @@ from config import config  # 导入自定义的config字典
 bootstrap = Bootstrap()
 mail = Mail()
 db = SQLAlchemy()
+pagedown = PageDown()
 
 # 登录状态记录
 login_manager = LoginManager()
@@ -37,6 +41,8 @@ def create_app(config_name):
     db.init_app(app)
 
     login_manager.init_app(app)
+    # markdown初始化
+    pagedown.init_app(app)
 
     # 使用蓝本定义路由 - 蓝本描述了路由和错误处理
     from .main import main as main_blueprint

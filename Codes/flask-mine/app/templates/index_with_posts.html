@@ -2,6 +2,12 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% import "_macros.html" as macros %}
 
+{# Flask-PageDown提供了一个模板宏，从CDN中加载渲染markdown所需文件 #}
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}
+
 {% block title %}Home{% endblock %}
 
 {% block page_content %}
