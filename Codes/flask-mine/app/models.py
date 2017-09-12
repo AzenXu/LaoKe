@@ -162,6 +162,23 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
     def __repr__(self):
         return '<User %>' % self.username
 
+    # 生成测试数据的方法11.3.1节
+    @staticmethod
+    def generate_fake(count=100):
+        from sqlalchemy.exc import IntegrityError
+        from random import seed
+        import forgery_py
+
+        seed()
+        for i in range(count):
+            u = User(email=forgery_py.internet.email_address(),username=forgery_py.internet.user_name(True),password=forgery_py.lorem_ipsum.word(),confirmed=True,name=forgery_py.name.full_name(),location=forgery_py.address.city(),about_me=forgery_py.lorem_ipsum.sentence(),member_since=forgery_py.date.date(True))
+            db.session.add(u)
+            # 随机生成的数据，有可能email或username不唯一，有可能报错
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
 
 #  这个类的设计目的是为了不管用户是否登录，都能调用current_user.can方法和is_administrator方法 - 通用性设计
 class AnonymousUser(AnonymousUserMixin):
@@ -180,3 +197,17 @@ class Post(db.Model):
     body = db.Column(db.Text)
     timestmp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    # 生成测试数据的方法11.3.1节
+    @staticmethod
+    def generate_fake(count=100):
+        from random import seed, randint
+        import forgery_py
+
+        seed()
+        user_count = User.query.count()
+        for i in range(count):
+            u = User.query.offset(randint(0, user_count - 1)).first()  # offset: 查询过滤器，会跳过参数中指定的记录数量...
+            p = Post(body=forgery_py.lorem_ipsum.sentence(),timestmp=forgery_py.date.date(True),author=u)
+            db.session.add(p)
+            db.session.commit()
