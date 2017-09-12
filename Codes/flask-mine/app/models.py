@@ -94,6 +94,27 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
     # 第11章 - 博客
     posts = db.relationship('Post', backref='author', lazy='dynamic')
 
+    # 第12章 - 相互关注 - 这里还木有理顺，之后需要花专门的一块时间来复习复习数据库，比如join的意思...
+    followed = db.relationship('Follow', foreign_keys=[Follow.follower_id], backref=db.backref('follower', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
+    followers = db.relationship('Follow', foreign_keys=[Follow.followed_id], backref=db.backref('followed', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
+
+    # 第12章 - 定义一些和关注相关的常用方法
+    def is_following(self, user):
+        return self.followed.filter_by(followed_id=user.id).first() is not None
+
+    def is_followed_by(self, user):
+        return self.followers.filter_by(follower_id=user.id).first() is not None
+
+    def follow(self, user):
+        if not self.is_following(user):
+            f = Follow(follower=self, followed=user)
+            db.session.add(f)
+
+    def unfollow(self, user):
+        f = self.followed.filter_by(followed_id=user.id).first()
+        if f:
+            db.session.delete(f)
+
     def ping(self):  # 更新last_seen，每次收到用户请求的时候都需要调用ping方法，通过钩子实现这个需求 - before_app_request
         self.last_seen = datetime.utcnow()
         db.session.add(self)
@@ -182,6 +203,13 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
                 db.session.commit()
             except IntegrityError:
                 db.session.rollback()
+
+# 自定义一个表示关注关系的表
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    follow_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    follow_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 #  这个类的设计目的是为了不管用户是否登录，都能调用current_user.can方法和is_administrator方法 - 通用性设计
