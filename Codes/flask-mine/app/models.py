@@ -25,7 +25,6 @@ import hashlib
 import bleach
 from markdown import markdown
 
-
 # 9.1 用户权限
 class Permission:
     def __init__(self):
@@ -142,6 +141,11 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
     @password.setter
     def password(self, password):
         self.password_hash = generate_password_hash(password)
+
+    # 12.3获取关注者文章
+    @property
+    def followed_posts(self):
+        return Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Follow.follower_id == self.id)
 
     # 这里定义一个成员方法
     def verify_password(self, password):
