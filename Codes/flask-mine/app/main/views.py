@@ -51,7 +51,7 @@ def index():
 def show_all():
     from flask import make_response
     resp = make_response(redirect(url_for('.index')))  # 因为要操纵cookie，所以需要手动创建response
-    resp.set_cookie('show_followed','',max_age=30*24*60*60)  # max_age是一个可选参数，设定cookie的过期时间
+    resp.set_cookie('show_followed','',max_age=30*24*60*60)  # 第二个参数为''的时候才为False，0也是True... max_age是一个可选参数，设定cookie的过期时间
     return resp
 
 # 只显示被关注者的文章
