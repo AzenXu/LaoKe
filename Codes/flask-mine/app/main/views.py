@@ -20,16 +20,52 @@ def secret():
 @main.route('/', methods=['GET', 'POST'])
 def index():
     form = PostForm()
+    # 发布文章按钮点击之后
     if current_user.can(Permission.WRITE_ARITICLES) and form.validate_on_submit():
         post = Post(body=form.body.data, author=current_user._get_current_object()) # Post需要的是真正的user对象，current_user是对user的轻度包装，所以需要通过_get_current_object获取真正的对象
         db.session.add(post)
         return redirect(url_for('.index'))
+
+    # 判断展示哪些文章 from 12.4
+    show_followed = False
+    if current_user.is_authenticated:
+        # 从cookie里取show_followed字段。request.cookies这是一个字典
+        show_followed = bool(request.cookies.get('show_followed',''))
+        print('show_followed result = ' + 'show followed' if show_followed else 'show all' + 'request = ' + str(request))
+    if show_followed:
+        query = current_user.followed_posts
+    else:
+        query = Post.query
+
     # posts = Post.query.order_by(Post.timestmp.desc()).all()
     page = request.args.get('page',1,type=int)  #  从请求的查询字符串中获取渲染的页数，没有指定则显示第1页，type=int保证参数无法转换成整数时，返回默认值
     #  paginate: SQLAlchemy的分页控件,返回值是一个Pagination类对象，用于在模板中生成分页链接
-    pagination = Post.query.order_by(Post.timestmp.desc()).paginate(page, per_page=current_app.config['FLASKY_POSTS_PER_PAGE'])
+    #  进一步理解下分页，其实它类似于一个SQLAlchemy的过滤器...
+    pagination = query.order_by(Post.timestmp.desc()).paginate(page, per_page=current_app.config['FLASKY_POSTS_PER_PAGE'],error_out=False)
     posts = pagination.items
     return render_template('index_with_posts.html', form=form, posts=posts, pagination=pagination)
+
+# 显示所有文章 - from 12.4
+@main.route('/all')
+@login_required
+def show_all():
+    from flask import make_response
+    resp = make_response(redirect(url_for('.index')))  # 因为要操纵cookie，所以需要手动创建response
+    resp.set_cookie('show_followed','',max_age=30*24*60*60)  # max_age是一个可选参数，设定cookie的过期时间
+    return resp
+
+# 只显示被关注者的文章
+@main.route('/followed')
+@login_required
+def show_followed():
+    from flask import make_response
+    # 只有通过make_response创建的响应对象，才能
+    resp = make_response(redirect(url_for('.index')))
+    resp.set_cookie('show_followed','1',max_age=30*24*60*60)
+
+    # 这里不应该用这个redirect - 这样的写法系统自动封装好了response，此处返回自定义的response就好了
+    # return redirect(request.args.get('next') or url_for('main.index'))
+    return resp
 
 @main.route('/user/<username>')
 def user(username):
@@ -154,6 +190,8 @@ def unfollow(username):
         flash('You are not his fans')
         return redirect(url_for('.user', username=username))
     current_user.unfollow(user)
+    flash('Done! Say goodbye to him')
+    return redirect(url_for('.user', username=username))
 
 
 
