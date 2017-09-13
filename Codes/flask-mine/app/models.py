@@ -72,6 +72,12 @@ class Role(db.Model):
     def __repr__(self):  # 可选方法，同iOS类的description方法
         return '<Role %r>' % self.name
 
+# 自定义一个表示关注关系的表
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
     __tablename__ = 'users'
@@ -203,14 +209,6 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
                 db.session.commit()
             except IntegrityError:
                 db.session.rollback()
-
-# 自定义一个表示关注关系的表
-class Follow(db.Model):
-    __tablename__ = 'follows'
-    follow_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    follow_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
 
 #  这个类的设计目的是为了不管用户是否登录，都能调用current_user.can方法和is_administrator方法 - 通用性设计
 class AnonymousUser(AnonymousUserMixin):

@@ -123,7 +123,41 @@ def indexold():
                            form = form, name = session.get('name'),
                            known = session.get('known', False))
 
-# 下面两个路由测试装饰器
+# 关注和取消关注这两个方法，最能体现什么叫「前后端分离」...逻辑要在后端实现 - controller层，展示在前端 - view层
+# - view层到controller层的消息传递，这里是用路由的形式实现的
+# 关注某人
+@main.route('/follow/<username>')
+@login_required
+@permission_required(Permission.FOLLOW)
+def follow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('Invalid user.')
+        return redirect(url_for('.index'))
+    if current_user.is_following(user):
+        flash('You are already following this user.')
+        return redirect(url_for('.user', username=username))
+    current_user.follow(user)
+    flash('You are now following' + username)
+    return redirect(url_for('.user', username=username))
+
+# 取消关注某人
+@main.route('/unfollow/<username>')
+@login_required
+@permission_required(Permission.FOLLOW)
+def unfollow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('Invalid user')
+        return redirect(url_for('.index'))
+    if not current_user.is_following(user):
+        flash('You are not his fans')
+        return redirect(url_for('.user', username=username))
+    current_user.unfollow(user)
+
+
+
+# 下面两个路由测试自定义装饰器
 @main.route('/admin')
 @login_required
 @admin_required
