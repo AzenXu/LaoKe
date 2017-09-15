@@ -1,0 +1,27 @@
+    <div class="posts">
+        {% for comment in comments %}
+            <li class="post">
+{#                <div class="'profile-thumbnail">#}
+{#                    <a href="{{ url_for('.user', username=comment.user.username) }}">#}
+{#                        <img class="'img-rounded profile-thumbnail" src="{{ comment.user.gravatar(size=40) }}">#}
+{#                    </a>#}
+{#                </div>#}
+                <div class="post-date">{{ comment.timestamp }}</div>
+{#                <div class="post-author">#}
+{#                    <a href="{{ url_for('.user', username=comment.user.username) }}">#}
+{#                        {{ post.author.username }}#}
+{#                    </a>#}
+{#                </div>#}
+                <div class="post-body">
+                    {% if comment.body_html %}
+                        {{ comment.body_html | safe }}
+                    {% else %}
+                        {{ comment.body }}
+                    {% endif %}
+                </div>
+                <div class="post-footer">
+
+                </div>
+            </li>
+        {% endfor %}
+    </div>

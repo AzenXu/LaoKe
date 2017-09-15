@@ -78,6 +78,16 @@ class Follow(db.Model):
     followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Comment(db.Model):
+    __tablename__ = 'comments'
+    # primary_key：表的主键。在两表关系中，主键用来在一个表中引用来自另一个表中的特定记录
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    body = db.Column(db.Text)
+    approves_count = db.Column(db.Integer)
+
 class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -98,6 +108,9 @@ class User(UserMixin, db.Model):  # 8.4注释：传说中的多继承？
 
     # 第11章 - 博客
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+
+    # 第13章 - 评价
+    comments = db.relationship('Comment', backref='user', lazy='dynamic')
 
     # 第12章 - 相互关注 - 这里还木有理顺，之后需要花专门的一块时间来复习复习数据库，比如join的意思...
     followed = db.relationship('Follow', foreign_keys=[Follow.follower_id], backref=db.backref('follower', lazy='joined'), lazy='dynamic', cascade='all, delete-orphan')
@@ -232,6 +245,8 @@ class Post(db.Model):
     timestmp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     body_html = db.Column(db.Text)  # markdown渲染成的HTML
+    # 13章
+    comments = db.relationship('Comment', backref='post', lazy='dynamic')  #作用：1.当调用post.comments的时候，会先从Comment表中找外键是Post的属性，然后筛选属性值是自己的comment
 
     # 生成测试数据的方法11.3.1节
     @staticmethod

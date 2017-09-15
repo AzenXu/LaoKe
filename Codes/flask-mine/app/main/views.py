@@ -3,9 +3,9 @@
 from flask import render_template, session, redirect, url_for, flash, abort, request, current_app
 
 from . import main
-from .forms import NameForm, EditProfileForm, EditProfileAdminForm, PostForm  # 从当前目录forms这个文件夹里，引入NameForm这个类
+from .forms import NameForm, EditProfileForm, EditProfileAdminForm, PostForm, CommentForm  # 从当前目录forms这个文件夹里，引入NameForm这个类
 from .. import db # 从上一级目录下引入db这个对象
-from ..models import User, Permission, Role, Post  # 从上一级models这个文件夹里，引入User这个类
+from ..models import User, Permission, Role, Post, Comment  # 从上一级models这个文件夹里，引入User这个类
 
 from flask_login import login_required, current_user  # 这里演示8.4保护路由 - 只能登录用户访问
 
@@ -75,10 +75,15 @@ def user(username):
     posts = user.posts.order_by(Post.timestmp.desc()).all()
     return render_template('user.html', user=user, posts=posts)
 
-@main.route('/post/<int:id>')
+@main.route('/post/<int:id>', methods=['GET', 'POST'])
 def post(id):
     post = Post.query.get_or_404(id)
-    return render_template('post.html', posts=[post])
+    commentForm = CommentForm()
+    if commentForm.validate_on_submit():
+        comment = Comment(body=commentForm.body.data, user_id=current_user.id, post_id=id)  # Post需要的是真正的user对象，current_user是对user的轻度包装，所以需要通过_get_current_object获取真正的对象
+        db.session.add(comment)
+        return redirect(url_for('.post', id=id))
+    return render_template('post.html', posts=[post], form=commentForm, comments=[post.comments])
 
 @main.route('/edit/<int:id>', methods=['GET','POST'])
 @login_required
