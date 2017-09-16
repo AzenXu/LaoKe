@@ -18,7 +18,6 @@ from flask import abort
 from flask_script import Manager
 from flask import render_template
 from flask_bootstrap import Bootstrap
-#-------
 
 class NameForm(Form):
     name = StringField('What is your name?', validators=[Required()])
@@ -46,7 +45,6 @@ def index():
 
 @app.route('/user/<name>')
 def user(name):
-    #第一个参数是文件名，后面的参数都是键值对，表明模板中的参数名对应的真实值
     return render_template('user.html', name=name)
 
 @app.errorhandler(404)
@@ -76,8 +74,6 @@ def abortTest():
 @app.route('/redirect') #返回一个302重定向指令，需要import redirect
 def redirectShow():
     return redirect('http://azen.me')
-
-
 
 if __name__ == '__main__':
     manager.run()
